@@ -1,5 +1,6 @@
-import sqlite3
 from typing import Any
+
+import psycopg2
 
 from db.connection import get_db_connection
 
@@ -10,17 +11,19 @@ def setup_database() -> None:
 
     cursor.execute(
         """
-		CREATE TABLE IF NOT EXISTS articles (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			ticker TEXT,
-			title TEXT,
-			url TEXT UNIQUE,
-			summary TEXT,
-			published_at TIMESTAMP,
-			source TEXT,
-			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-		)
-		"""
+        CREATE TABLE IF NOT EXISTS articles (
+            id SERIAL PRIMARY KEY,
+            ticker TEXT,
+            title TEXT,
+            url TEXT UNIQUE,
+            summary TEXT,
+            published_at TIMESTAMPTZ,
+            source TEXT,
+            created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            sentiment_score REAL,
+            sentiment_label TEXT
+        )
+        """
     )
     conn.commit()
     conn.close()
@@ -36,10 +39,11 @@ def upload_articles(articles: list[dict[str, Any]]) -> int:
         try:
             cursor.execute(
                 """
-				INSERT OR IGNORE INTO articles
-				(ticker, title, url, summary, published_at, source)
-				VALUES (?, ?, ?, ?, ?, ?)
-				""",
+                INSERT INTO articles
+                (ticker, title, url, summary, published_at, source)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (url) DO NOTHING
+                """,
                 (
                     article["ticker"],
                     article["title"],
@@ -53,7 +57,7 @@ def upload_articles(articles: list[dict[str, Any]]) -> int:
             if cursor.rowcount > 0:
                 new_articles_count += 1
 
-        except sqlite3.Error as exc:
+        except psycopg2.Error as exc:
             print(f"Database error on {article.get('ticker', 'unknown')}: {exc}")
 
     conn.commit()

@@ -1,18 +1,19 @@
 import time
 from email.utils import parsedate_to_datetime
+from typing import Any
 
 import feedparser
 
-from core.config import AppConfig, settings
+from core.config import AppConfig
 from db.repository import upload_articles
 from scraper.helpers import clean_html
 
 
-def fetch_news(ticker: str) -> list:
-    rss_url = settings.scraper.rss_base_url.format(ticker=ticker)
+def fetch_news(ticker: str, rss_base_url: str) -> list[dict[str, Any]]:
+    rss_url = rss_base_url.format(ticker=ticker)
     feed = feedparser.parse(rss_url)
 
-    articles = []
+    articles: list[dict[str, Any]] = []
 
     for entry in feed.entries:
         try:
@@ -39,7 +40,7 @@ def run_scraper(config: AppConfig) -> None:
     total_new = 0
 
     for ticket in config.scraper.watchlist:
-        articles = fetch_news(ticket)
+        articles = fetch_news(ticket, config.scraper.rss_base_url)
 
         if articles:
             new_count = upload_articles(articles)

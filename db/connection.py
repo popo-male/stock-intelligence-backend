@@ -1,10 +1,15 @@
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 from core.settings import settings
 
 
-def get_db_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(settings.DB_PATH)
-    # Return dict-like objects instead of tuples.
-    conn.row_factory = sqlite3.Row
-    return conn
+def get_db_connection():
+    return psycopg2.connect(
+        host=settings.DB_HOST,
+        port=settings.DB_PORT,
+        dbname=settings.DB_NAME,
+        user=settings.DB_USER,
+        password=settings.DB_PASSWORD,
+        cursor_factory=RealDictCursor,
+    )
