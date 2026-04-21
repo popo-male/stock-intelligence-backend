@@ -1,6 +1,7 @@
-def main():
-    print("Hello from news-alert-system!")
-
+from db.repository import setup_database
+from scraper.fetcher import run_scraper
 
 if __name__ == "__main__":
-    main()
+    setup_database()
+
+    run_scraper()

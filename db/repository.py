@@ -26,7 +26,7 @@ def setup_database() -> None:
     conn.close()
 
 
-def save_articles_to_db(articles: list[dict[str, Any]]) -> int:
+def upload_articles(articles: list[dict[str, Any]]) -> int:
     """Insert a list of articles, ignoring duplicates, and return new insert count."""
     conn = get_db_connection()
     cursor = conn.cursor()
