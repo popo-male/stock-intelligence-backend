@@ -6,10 +6,13 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "beautifulsoup4>=4.14.3",
+    "fastapi>=0.136.0",
     "feedparser>=6.0.12",
     "psycopg2-binary>=2.9.12",
+    "pydantic>=2.13.3",
     "pydantic-settings>=2.14.0",
     "python-dotenv>=1.2.2",
     "pyyaml>=6.0.3",
+    "uvicorn>=0.44.0",
     "vadersentiment>=3.3.2",
 ]
