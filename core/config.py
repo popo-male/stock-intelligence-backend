@@ -6,12 +6,12 @@ from pydantic import BaseModel, Field, ValidationError
 
 class ScraperConfig(BaseModel):
     watchlist: list[str] = Field(default_factory=list)
-    rss_base_url: str 
+    rss_base_url: str
     sleep_interval: int = Field(default=1, gt=0)
 
 
 class AppConfig(BaseModel):
-    scraper: ScraperConfig = Field(default_factory=ScraperConfig)
+    scraper: ScraperConfig = Field(default_factory=ScraperConfig)  # type: ignore
 
 
 def load_config() -> AppConfig:

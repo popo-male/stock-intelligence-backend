@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASSWORD: str
 
+    # LLM
+    LLM_BASE_URL: str
+    LLM_API_KEY: str
+    LLM_MODEL: str
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -19,4 +24,4 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings()
+settings = Settings()  # pyright: ignore[reportCallIssue]
