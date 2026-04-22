@@ -2,7 +2,7 @@ name: Article Ingestion Pipeline
 
 on:
   schedule:
-    - cron: "0 * * * *" # runs every hour, adjust as needed
+    - cron: "0 1-9 * * 1-5"   # every hour, 9am-5pm MYT, weekdays only
   workflow_dispatch:
     # allows you to trigger it manually from GitHub UI
 
