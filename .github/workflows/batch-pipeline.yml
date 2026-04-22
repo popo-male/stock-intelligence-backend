@@ -12,6 +12,7 @@ env:
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
+    environment: article_ingestion
 
     steps:
       - name: Checkout repo
