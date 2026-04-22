@@ -1,4 +1,5 @@
 import json
+import time
 from typing import Any, cast
 
 from openai import OpenAI
@@ -58,9 +59,7 @@ class LLMProcessor:
         except Exception:
             pass
 
-        cursor.execute(
-            "SELECT id, title, summary FROM articles WHERE bullets IS NULL LIMIT 20"
-        )
+        cursor.execute("SELECT id, title, summary FROM articles WHERE bullets IS NULL")
         unsummarized = cursor.fetchall()
 
         if not unsummarized:
@@ -88,6 +87,8 @@ class LLMProcessor:
                     (bullets_json, keywords_json, row["id"]),
                 )
                 update_count += 1
+
+            time.sleep(2.5)
 
         conn.commit()
         conn.close()

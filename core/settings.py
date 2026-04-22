@@ -6,11 +6,12 @@ class Settings(BaseSettings):
     ENVIRONMENT: str
 
     # DB
-    DB_HOST: str
-    DB_PORT: int
-    DB_NAME: str
-    DB_USER: str
-    DB_PASSWORD: str
+    DATABASE_URL: str | None = None
+    DB_HOST: str | None = None
+    DB_PORT: int | None = None
+    DB_NAME: str | None = None
+    DB_USER: str | None = None
+    DB_PASSWORD: str | None = None
 
     # LLM
     LLM_BASE_URL: str

@@ -12,3 +12,5 @@ class Article(BaseModel):
     source: str
     sentiment_score: Optional[float]
     sentiment_label: Optional[str]
+    bullets: Optional[List[str]] = []
+    keywords: Optional[List[str]] = []
