@@ -29,6 +29,7 @@ jobs:
       - name: Run batch pipeline
         env:
           ENVIRONMENT: github_actions
+          STRICT_LLM_FAILURE: "true"
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}

@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     LLM_BASE_URL: str
     LLM_API_KEY: str
     LLM_MODEL: str
+    STRICT_LLM_FAILURE: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",

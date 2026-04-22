@@ -1,5 +1,6 @@
 import json
 import time
+from urllib.parse import urlparse
 from typing import Any, cast
 
 from openai import OpenAI
@@ -9,9 +10,19 @@ from db.connection import get_db_connection
 
 class LLMProcessor:
     def __init__(self, client: OpenAI | None = None):
+        # Fail fast for obviously misconfigured settings.
+        if not settings.LLM_BASE_URL.strip():
+            raise ValueError("LLM_BASE_URL is empty")
+        if not settings.LLM_API_KEY.strip():
+            raise ValueError("LLM_API_KEY is empty")
+        if not settings.LLM_MODEL.strip():
+            raise ValueError("LLM_MODEL is empty")
+
         self.client = client or OpenAI(
             base_url=settings.LLM_BASE_URL,
             api_key=settings.LLM_API_KEY,
+            timeout=30.0,
+            max_retries=1,
         )
 
     def generate_insights(self, title: str, summary: str) -> dict:
@@ -43,7 +54,12 @@ class LLMProcessor:
 
             return json.loads(raw_output)
         except Exception as exc:
-            print(f"Error generating insights: {exc}")
+            parsed = urlparse(settings.LLM_BASE_URL)
+            endpoint = parsed.netloc or settings.LLM_BASE_URL
+            print(
+                "Error generating insights "
+                f"(type={type(exc).__name__}, endpoint={endpoint}, model={settings.LLM_MODEL}): {exc}"
+            )
             return {"bullets": [], "keywords": []}
 
     def process_unsummarized_articles(self) -> None:
@@ -93,6 +109,12 @@ class LLMProcessor:
         conn.commit()
         conn.close()
         print(f"Successfully generated insights for {update_count} articles.")
+
+        if settings.STRICT_LLM_FAILURE and unsummarized and update_count == 0:
+            raise RuntimeError(
+                "LLM summarization failed for all articles. "
+                "Check LLM_BASE_URL/LLM_API_KEY/LLM_MODEL or provider network availability from GitHub Actions."
+            )
 
 
 def generate_insights(title: str, summary: str) -> dict:
