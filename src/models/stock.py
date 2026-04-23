@@ -1,15 +1,19 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 from src.models.article import Article
 
 
-class Stock(BaseModel):
+class StockBase(BaseModel):
     ticker: str
     mention_count: int
     average_sentiment: float
     hotness_score: float
+    current_price: Optional[float] = 0.0
+    open_price: Optional[float] = 0.0
+    price_change_pct: Optional[float] = 0.0
+    volume: Optional[int] = 0
 
 
 class StockDetail(BaseModel):
@@ -21,7 +25,7 @@ class StockDetail(BaseModel):
 
 
 class Stocks(BaseModel):
-    leaderboard: List[Stock]
+    leaderboard: List[StockBase]
 
 
 class TrendPoint(BaseModel):

@@ -1,4 +1,5 @@
 import json
+import yfinance as yf
 from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, Query
 from src.db.repository import (
@@ -8,7 +9,7 @@ from src.db.repository import (
     get_sentiment_trend,
     get_article_count,
 )
-from src.models.stock import Stock, StockDetail, Stocks, StockTrend, TrendPoint
+from src.models.stock import StockBase, StockDetail, Stocks, StockTrend, TrendPoint
 from src.models.article import Article
 
 router = APIRouter()
@@ -24,17 +25,41 @@ def get_stocks():
 
     leaderboard = []
     for row in rows:
+        ticker_sym = row["ticker"]  # type: ignore
         # Simple hotness formula: Volume * (1 + absolute sentiment magnitude)
         mentions = row["mention_count"]  # type: ignore
         avg_sent = row["average_sentiment"] or 0.0  # type: ignore
         hotness = mentions * (1 + abs(avg_sent))
 
+        current_price = 0.0
+        open_price = 0.0
+        price_change_pct = 0.0
+        volume = 0
+
+        try:
+            stock = yf.Ticker(ticker_sym)
+            info = stock.fast_info
+            current_price = round(info.last_price, 2)  # type: ignore
+            open_price = round(info.open, 2)  # type: ignore
+            volume = info.last_volume
+
+            if open_price > 0:
+                price_change_pct = round(
+                    ((current_price - open_price) / open_price) * 100, 2
+                )
+        except Exception as e:
+            print(f"Failed to fetch market data for {ticker_sym}: {e}")
+
         leaderboard.append(
-            Stock(
+            StockBase(
                 ticker=row["ticker"],  # type: ignore
                 mention_count=mentions,
                 average_sentiment=round(avg_sent, 3),
                 hotness_score=round(hotness, 2),
+                current_price=current_price,
+                open_price=open_price,
+                price_change_pct=price_change_pct,
+                volume=volume,
             )
         )
 
