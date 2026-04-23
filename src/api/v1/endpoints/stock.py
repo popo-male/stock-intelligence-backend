@@ -105,7 +105,7 @@ def get_stock_detail(ticker: str, target_date: str = Query(None)):
     )
 
 
-@router.get("/api/stocks/{ticker}/trend", response_model=StockTrend)
+@router.get("/{ticker}/trend", response_model=StockTrend)
 def get_stock_trend(ticker: str):
     """Returns the average sentiment grouped by date for the last 7 days."""
     ticker_upper = ticker.upper()
