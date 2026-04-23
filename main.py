@@ -1,31 +1,25 @@
-from core.config import load_config
-from db.repository import setup_database
-from nlp.analyzer import Analyzer
-from nlp.llm_processor import LLMProcessor
-from scraper.fetcher import run_scraper
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from src.api.v1.routes import router
 
+app = FastAPI(
+    title="Stock Intelligence API",
+    description="Backend for the Stock News Analysis Platform",
+    version="1.0.0",
+)
 
-def run() -> None:
-    config = load_config()
+# allow frontend dashboard to communicate with this API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, restrict this to your frontend URL
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True,
+)
 
-    # setup db
-    setup_database()
-
-    print("Stock Intelligence Platform Initializing...")
-
-    # ingest data
-    run_scraper(config)
-
-    # nlp processing (sentiment)
-    analyzer = Analyzer()
-    analyzer.process_unscored_articles()
-
-    # llm summaries
-    llm_processor = LLMProcessor()
-    llm_processor.process_unsummarized_articles()
-
-    print("Pipeline execution complete!")
-
+app.include_router(router)
 
 if __name__ == "__main__":
-    run()
+    print("Starting FastAPI Server...")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

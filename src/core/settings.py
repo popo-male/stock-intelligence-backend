@@ -13,12 +13,6 @@ class Settings(BaseSettings):
     DB_USER: str | None = None
     DB_PASSWORD: str | None = None
 
-    # LLM
-    LLM_BASE_URL: str
-    LLM_API_KEY: str
-    LLM_MODEL: str
-    STRICT_LLM_FAILURE: bool = False
-
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

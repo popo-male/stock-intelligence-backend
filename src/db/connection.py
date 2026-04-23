@@ -1,7 +1,7 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-from core.settings import settings
+from src.core.settings import settings
 
 
 def get_db_connection():

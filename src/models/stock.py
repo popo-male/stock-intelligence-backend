@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from backend.models.article import Article
+from src.models.article import Article
 
 
 class Stock(BaseModel):
@@ -17,7 +17,18 @@ class StockDetail(BaseModel):
     total_articles: int
     average_sentiment: float
     recent_news: List[Article]
+    resolved_date: str
 
 
 class Stocks(BaseModel):
     leaderboard: List[Stock]
+
+
+class TrendPoint(BaseModel):
+    date: str
+    average_sentiment: float
+
+
+class StockTrend(BaseModel):
+    ticker: str
+    trend: List[TrendPoint]
