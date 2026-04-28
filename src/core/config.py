@@ -1,21 +1,34 @@
 from pathlib import Path
+from typing import Any
 
 import yaml
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, model_validator
 
 
-class ScraperConfig(BaseModel):
-    watchlist: list[str] = Field(default_factory=list)
-    rss_base_url: str
-    sleep_interval: int = Field(default=1, gt=0)
+class WatchList(BaseModel):
+    tickers: list[str] = Field(default_factory=list)  # type: ignore
 
 
 class AppConfig(BaseModel):
-    scraper: ScraperConfig = Field(default_factory=ScraperConfig)  # type: ignore
+    watchlist: WatchList = Field(default_factory=WatchList)  # type: ignore
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_legacy_watchlist(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        watchlist = data.get("watchlist")
+        if isinstance(watchlist, list):
+            normalized = dict(data)
+            normalized["watchlist"] = {"tickers": watchlist}
+            return normalized
+
+        return data
 
 
 def load_config() -> AppConfig:
-    config_path = Path(__file__).resolve().parents[1] / "config.yaml"
+    config_path = Path(__file__).resolve().parents[2] / "config.yaml"
     if not config_path.exists():
         return AppConfig()
 
@@ -26,3 +39,6 @@ def load_config() -> AppConfig:
         return AppConfig.model_validate(raw_config)
     except ValidationError as exc:
         raise ValueError(f"Invalid configuration in {config_path}: {exc}") from exc
+
+
+config = load_config()

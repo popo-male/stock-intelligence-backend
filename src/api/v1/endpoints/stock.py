@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import yfinance as yf
 from fastapi import APIRouter, HTTPException, Query
 
+from src.core.config import config
 from src.db.repository import (
     get_article_count,
     get_hot_stocks,
@@ -25,25 +26,33 @@ def get_stocks(target_date: str = Query(None)):
         target_date = datetime.now().strftime("%Y-%m-%d")
 
     rows = get_hot_stocks(target_date)
+    db_data = {row["ticker"]: row for row in rows}
 
+    watchlist = config.watchlist.tickers
     leaderboard = []
-    for row in rows:
-        ticker_sym = row["ticker"]  # type: ignore
-        # Simple hotness formula: Volume * (1 + absolute sentiment magnitude)
-        mentions = row["mention_count"]  # type: ignore
-        avg_sent = row["average_sentiment"] or 0.0  # type: ignore
+    for ticker in watchlist:
+        if ticker in db_data:
+            row = db_data[ticker]
+            mentions = row["mention_count"]
+            avg_sent = row["average_sentiment"] or 0.0
+        else:
+            mentions = 0
+            avg_sent = 0.0
+
+        # Calculate hotness
         hotness = mentions * (1 + abs(avg_sent))
 
+        # 2. Fetch Live Market Data
         current_price = 0.0
         open_price = 0.0
         price_change_pct = 0.0
         volume = 0
 
         try:
-            stock = yf.Ticker(ticker_sym)
+            stock = yf.Ticker(ticker)
             info = stock.fast_info
-            current_price = round(info.last_price, 2)  # type: ignore
-            open_price = round(info.open, 2)  # type: ignore
+            current_price = round(info.last_price, 2)
+            open_price = round(info.open, 2)
             volume = info.last_volume
 
             if open_price > 0:
@@ -51,11 +60,12 @@ def get_stocks(target_date: str = Query(None)):
                     ((current_price - open_price) / open_price) * 100, 2
                 )
         except Exception as e:
-            print(f"Failed to fetch market data for {ticker_sym}: {e}")
+            print(f"Failed to fetch market data for {ticker}: {e}")
 
+        # 3. Append to leaderboard
         leaderboard.append(
             StockBase(
-                ticker=row["ticker"],  # type: ignore
+                ticker=ticker,
                 mention_count=mentions,
                 average_sentiment=round(avg_sent, 3),
                 hotness_score=round(hotness, 2),
@@ -66,7 +76,7 @@ def get_stocks(target_date: str = Query(None)):
             )
         )
 
-    # Sort by our custom hotness score
+    # Sort by our custom hotness score (highest hotness first)
     leaderboard.sort(key=lambda x: x.hotness_score, reverse=True)
     return Stocks(leaderboard=leaderboard)
 
