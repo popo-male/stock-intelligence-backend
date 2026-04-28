@@ -1,27 +1,30 @@
 import json
-import yfinance as yf
 from datetime import datetime, timedelta
+
+import yfinance as yf
 from fastapi import APIRouter, HTTPException, Query
+
 from src.db.repository import (
+    get_article_count,
     get_hot_stocks,
+    get_sentiment_trend,
     get_stock_articles,
     get_stock_stats,
-    get_sentiment_trend,
-    get_article_count,
 )
-from src.models.stock import StockBase, StockDetail, Stocks, StockTrend, TrendPoint
 from src.models.article import Article
+from src.models.stock import StockBase, StockDetail, Stocks, StockTrend, TrendPoint
 
 router = APIRouter()
 
 
 @router.get("/hot", response_model=Stocks)
-def get_stocks():
-    """Returns a leaderboard of the most talked-about stocks with their sentiment."""
-    # Calculate date for 3 days ago
-    date_range = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
+def get_stocks(target_date: str = Query(None)):
+    """Returns a leaderboard of the most talked-about stocks with their sentiment. Defaults to today"""
+    # Default to today if no date is selected
+    if not target_date:
+        target_date = datetime.now().strftime("%Y-%m-%d")
 
-    rows = get_hot_stocks(date_range)
+    rows = get_hot_stocks(target_date)
 
     leaderboard = []
     for row in rows:

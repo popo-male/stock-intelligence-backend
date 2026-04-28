@@ -13,7 +13,7 @@ def get_hot_stocks(date_range: str):
             AVG(sentiment_score) as average_sentiment
         FROM articles
         WHERE sentiment_score IS NOT NULL
-            AND published_at >= %s
+            AND published_at::DATE = %s::DATE
         GROUP BY ticker
         ORDER BY mention_count DESC, average_sentiment DESC
     """,
